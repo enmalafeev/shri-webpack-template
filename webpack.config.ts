@@ -8,7 +8,15 @@ import ModuleLogger from './plugins/moduleLogger';
 const config: webpack.Configuration = {
     mode: 'production',
     entry: {
-        root: ['./src/pages/root.tsx', './src/pages/root2.tsx'],
+        root: {
+            import: './src/pages/root.tsx',
+            dependOn: 'shared',
+        },
+        root2: {
+            import: './src/pages/root2.tsx',
+            dependOn: 'shared',
+        },
+        shared: ['readable-stream', 'safe-buffer', 'bn.js'],
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
