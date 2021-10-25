@@ -3,8 +3,7 @@ import * as webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import StatoscopePlugin from '@statoscope/webpack-plugin';
 
-// import ModuleLogger from './plugins/moduleLogger';
-// import UnusedFilesPlugin from './plugins/UnusedFilesPlugin';
+import UnusedFilesPlugin from './plugins/UnusedFilesPlugin';
 
 const config: webpack.Configuration = {
     mode: 'production',
@@ -24,9 +23,10 @@ const config: webpack.Configuration = {
         },
     },
     plugins: [
-        new HtmlWebpackPlugin(),
-        // new ModuleLogger(),
-        // new UnusedFilesPlugin({ options: true }),
+        new HtmlWebpackPlugin({
+            template: 'src/index.html',
+        }),
+        new UnusedFilesPlugin(),
         new StatoscopePlugin({
             saveStatsTo: 'stats.json',
             saveOnlyStats: false,
@@ -42,7 +42,7 @@ const config: webpack.Configuration = {
         alias: {
             'bn.js': false,
             'browserify-crypto': false,
-            'crypto-browserify': false,
+            'crypto-browserify': path.resolve(__dirname, 'src/crypto-browserify'),
         },
     },
     module: {
