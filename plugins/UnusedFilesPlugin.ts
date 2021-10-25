@@ -1,10 +1,11 @@
 import { Compiler } from 'webpack';
 import fg from 'fast-glob';
+import { writeFile } from 'fs/promises';
 
 class UnusedFilesPlugin {
     static defaultOptions = {
         outputFile: 'unused',
-        patterns: ['src/**/*.{js,jsx,ts,tsx}'],
+        patterns: ['src/**'],
     };
     options: { outputFile: string; patterns: string[] };
 
@@ -12,21 +13,24 @@ class UnusedFilesPlugin {
         this.options = { ...UnusedFilesPlugin.defaultOptions, ...options };
     }
 
-    async detectDeadCode() {
-        const compiledFiles = [];
-        const includedFiles = await fg(this.options.patterns, { dot: true });
+    async getIncludedFiles() {
+        const includedFiles = await fg(this.options.patterns, { absolute: true });
         return await includedFiles;
     }
 
-    // handleAfterEmit(options, compilation, callback) {
-    //     detectDeadCode(compilation, options);
-    //     callback();
-    //
-
     apply(compiler: Compiler) {
         const pluginName = UnusedFilesPlugin.name;
-        compiler.hooks.afterEmit.tapAsync('WebpackDeadcodePlugin', async () => {
-            console.log(await this.detectDeadCode());
+
+        compiler.hooks.afterEmit.tapAsync(pluginName, async (compilation, callback) => {
+            const usedFiles = Array.from(compilation.fileDependencies).filter(file => !file.includes('node_modules'));
+            const includedFiles = await this.getIncludedFiles();
+            const unUsedFiles = JSON.stringify(
+                includedFiles.filter(file => !usedFiles.includes(file)),
+                null,
+                2,
+            );
+            await writeFile(this.options.outputFile, unUsedFiles);
+            callback();
         });
     }
 }
